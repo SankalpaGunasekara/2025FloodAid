@@ -318,7 +318,7 @@ function App() {
       <StatsWidget requests={requests} t={t} />
 
       {/* --- FLOATING CONTROLS --- */}
-      <div className="absolute bottom-6 right-4 z-[900] flex flex-col gap-3">
+      <div className="absolute bottom-20 right-4 z-[900] flex flex-col gap-3">
         <button onClick={() => setShowHelp(true)} className="bg-white text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition border border-gray-200">
           <Info size={24} />
         </button>
