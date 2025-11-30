@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .h-dvh {
+    height: 100vh; /* Fallback */
+    height: 100dvh;
+  }
+}
+
 html, body, #root {
   height: 100%;
   width: 100%;
