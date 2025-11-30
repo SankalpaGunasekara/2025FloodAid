@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+/* Map Container needs explicit height to show up */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
