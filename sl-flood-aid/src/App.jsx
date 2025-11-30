@@ -217,7 +217,7 @@ function StatsWidget({ requests, t }) {
   const low = requests.filter(r => r.status === 'active' && r.severity === 'low').length;
 
   return (
-    <div className="bg-slate-800 text-white py-2 px-4 flex items-center shadow-inner z-10 text-xs shrink-0 border-t border-slate-700 overflow-hidden relative">
+    <div className="bg-slate-800 text-white py-2 px-4 flex items-center shadow-inner z-10 text-sm md:text-xs shrink-0 border-t border-slate-700 overflow-hidden relative">
       <div className="flex items-center gap-2 font-bold text-gray-400 uppercase tracking-wider shrink-0 mr-4 z-20 bg-slate-800 pr-2">
         <Activity size={14} /> {t.stats}
       </div>
@@ -333,16 +333,16 @@ function App() {
     <div className="h-screen w-screen flex flex-col relative font-sans overflow-hidden bg-slate-50 text-slate-900">
 
       {/* --- HEADER --- */}
-      <div className="bg-slate-900 p-3 text-white z-20 flex justify-between items-center shadow-md h-16 shrink-0">
+      <div className="bg-slate-900 p-3 text-white z-20 flex justify-between items-center shadow-md min-h-[64px] md:h-16 shrink-0">
         <div className="flex flex-col">
-          <h1 className="font-bold text-sm flex items-center gap-2 text-red-500">
-            <ShieldAlert size={20} /> {t.title}
+          <h1 className="font-bold text-base md:text-sm flex items-center gap-2 text-red-500">
+            <ShieldAlert size={22} className="md:w-5 md:h-5" /> {t.title}
           </h1>
         </div>
         <div className="flex gap-2">
           <button onClick={() => { setShowForm(!showForm); if (!showForm) setNewLocation({ lat: 7.8731, lng: 80.7718 }); }}
-            className="bg-red-600 text-white px-4 py-2 rounded-full font-bold shadow-lg hover:bg-red-700 text-sm transition active:scale-95 flex items-center gap-2">
-            <Plus size={18} /> {t.requestBtn}
+            className="bg-red-600 text-white px-5 py-2.5 md:px-4 md:py-2 rounded-full font-bold shadow-lg hover:bg-red-700 text-base md:text-sm transition active:scale-95 flex items-center gap-2 min-h-[44px]">
+            <Plus size={20} className="md:w-[18px] md:h-[18px]" /> <span className="hidden sm:inline">{t.requestBtn}</span><span className="sm:hidden">+</span>
           </button>
         </div>
       </div>
@@ -351,14 +351,14 @@ function App() {
       <StatsWidget requests={requests} t={t} />
 
       {/* --- FLOATING CONTROLS --- */}
-      <div className="absolute top-40 right-4 z-[900] flex flex-col gap-3">
-        <button onClick={() => setShowHelp(true)} className="bg-white text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition border border-gray-200">
-          <Info size={24} />
+      <div className="absolute top-32 md:top-40 right-3 md:right-4 z-[900] flex flex-col gap-4">
+        <button onClick={() => setShowHelp(true)} className="bg-white text-slate-800 w-14 h-14 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition border border-gray-200">
+          <Info size={26} className="md:w-6 md:h-6" />
         </button>
-        <button onClick={() => setShowSaved(true)} className="bg-green-500 text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-green-50 active:scale-95 transition border border-green-200">
-          <Users size={24} />
+        <button onClick={() => setShowSaved(true)} className="bg-green-500 text-white w-14 h-14 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-green-600 active:scale-95 transition border border-green-200">
+          <Users size={26} className="md:w-6 md:h-6" />
         </button>
-        <button onClick={() => setLang(lang === 'en' ? 'si' : 'en')} className="bg-white text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition font-bold border border-gray-200 text-lg">
+        <button onClick={() => setLang(lang === 'en' ? 'si' : 'en')} className="bg-white text-slate-800 w-14 h-14 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition font-bold border border-gray-200 text-xl md:text-lg">
           {lang === 'en' ? 'සිං' : 'En'}
         </button>
       </div>
@@ -372,25 +372,25 @@ function App() {
           {requests.filter(r => r.status === 'active').map((req) => (
             <Marker key={req.id} position={[req.latitude, req.longitude]} icon={icons[req.severity] || icons.moderate}>
               <Popup>
-                <div className="p-1 min-w-[240px]">
-                  <div className={`text-xs font-bold uppercase mb-2 px-2 py-1 rounded w-fit text-white ${req.severity === 'critical' ? 'bg-red-600' : req.severity === 'low' ? 'bg-blue-500' : 'bg-orange-500'}`}>
+                <div className="p-2 min-w-[260px] md:min-w-[240px]">
+                  <div className={`text-sm md:text-xs font-bold uppercase mb-2 px-2 py-1 rounded w-fit text-white ${req.severity === 'critical' ? 'bg-red-600' : req.severity === 'low' ? 'bg-blue-500' : 'bg-orange-500'}`}>
                     {req.severity === 'critical' ? t.sevCritical : req.severity === 'low' ? t.sevLow : t.sevModerate}
                   </div>
-                  <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1">{req.needs}</h3>
-                  <p className="text-sm font-semibold text-gray-700">{req.name}</p>
-                  <p className="text-gray-600 text-xs mb-3">{req.district} - {req.town}</p>
+                  <h3 className="font-bold text-xl md:text-lg text-gray-900 leading-tight mb-1">{req.needs}</h3>
+                  <p className="text-base md:text-sm font-semibold text-gray-700">{req.name}</p>
+                  <p className="text-gray-600 text-sm md:text-xs mb-3">{req.district} - {req.town}</p>
 
                   <div className="flex gap-2 mb-3">
-                    <a href={`tel:${req.contact_number}`} className="flex-1 bg-green-100 text-green-800 py-2 rounded-lg text-center text-sm font-bold no-underline border border-green-200 hover:bg-green-200 transition">
+                    <a href={`tel:${req.contact_number}`} className="flex-1 bg-green-100 text-green-800 py-3 md:py-2 rounded-lg text-center text-base md:text-sm font-bold no-underline border border-green-200 hover:bg-green-200 transition min-h-[44px] flex items-center justify-center">
                       📞 Call
                     </a>
                     <a href={`https://www.google.com/maps/dir/?api=1&destination=${req.latitude},${req.longitude}`} target="_blank" rel="noreferrer"
-                      className="flex-1 bg-blue-100 text-blue-800 py-2 rounded-lg text-center text-sm font-bold no-underline border border-blue-200 flex justify-center items-center gap-1 hover:bg-blue-200 transition">
-                      <Navigation size={14} /> Map
+                      className="flex-1 bg-blue-100 text-blue-800 py-3 md:py-2 rounded-lg text-center text-base md:text-sm font-bold no-underline border border-blue-200 flex justify-center items-center gap-1 hover:bg-blue-200 transition min-h-[44px]">
+                      <Navigation size={16} className="md:w-[14px] md:h-[14px]" /> Map
                     </a>
                   </div>
-                  <button onClick={() => setVerifyId(req.id)} className="w-full bg-slate-800 text-white py-2 rounded-lg text-sm font-bold hover:bg-black flex justify-center items-center gap-2 transition">
-                    <CheckCircle size={16} /> {t.markHelped}
+                  <button onClick={() => setVerifyId(req.id)} className="w-full bg-slate-800 text-white py-3 md:py-2 rounded-lg text-base md:text-sm font-bold hover:bg-black flex justify-center items-center gap-2 transition min-h-[44px]">
+                    <CheckCircle size={18} className="md:w-4 md:h-4" /> {t.markHelped}
                   </button>
                   <div className="text-[10px] text-gray-400 mt-2 text-right">{new Date(req.created_at).toLocaleString()}</div>
                 </div>
@@ -534,13 +534,13 @@ function App() {
               <h2 className="hidden md:block text-2xl font-bold mb-6 text-gray-800">{t.formTitle}</h2>
               <form id="aid-form" onSubmit={handleSubmit} className="space-y-5">
 
-                <button type="button" onClick={handleBrowserGPS} className="w-full bg-blue-600 text-white p-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition mb-4">
-                  <Locate size={20} /> {t.getGps}
+                <button type="button" onClick={handleBrowserGPS} className="w-full bg-blue-600 text-white p-4 md:p-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition mb-4 min-h-[52px] text-base md:text-sm">
+                  <Locate size={22} className="md:w-5 md:h-5" /> {t.getGps}
                 </button>
 
                 <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-                  <label className="block text-xs font-bold text-red-800 uppercase mb-2">{t.severity}</label>
-                  <select className="w-full p-3 border-red-200 border rounded-lg bg-white font-bold text-gray-800 shadow-sm focus:ring-2 ring-red-200 outline-none h-12"
+                  <label className="block text-sm md:text-xs font-bold text-red-800 uppercase mb-2">{t.severity}</label>
+                  <select className="w-full p-4 md:p-3 border-red-200 border rounded-lg bg-white font-bold text-gray-800 shadow-sm focus:ring-2 ring-red-200 outline-none min-h-[52px] md:h-12 text-base"
                     value={formData.severity} onChange={e => setFormData({ ...formData, severity: e.target.value })}>
                     <option value="critical">🔴 {t.sevCritical}</option>
                     <option value="moderate">🟠 {t.sevModerate}</option>
@@ -550,36 +550,36 @@ function App() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.name}</label>
-                    <input required type="text" maxLength={50} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition"
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase mb-1">{t.name}</label>
+                    <input required type="text" maxLength={50} className="w-full p-4 md:p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition min-h-[52px] text-base"
                       value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.phone}</label>
-                    <input required type="tel" maxLength={10} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition"
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase mb-1">{t.phone}</label>
+                    <input required type="tel" maxLength={10} className="w-full p-4 md:p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition min-h-[52px] text-base"
                       value={formData.contact_number} onChange={e => setFormData({ ...formData, contact_number: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.district}</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:border-blue-500 outline-none h-[50px]"
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase mb-1">{t.district}</label>
+                    <select className="w-full p-4 md:p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:border-blue-500 outline-none min-h-[52px] md:h-[50px] text-base"
                       value={formData.district} onChange={e => setFormData({ ...formData, district: e.target.value })}>
                       {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.town}</label>
-                    <input maxLength={50} required type="text" className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 outline-none h-[50px]"
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase mb-1">{t.town}</label>
+                    <input maxLength={50} required type="text" className="w-full p-4 md:p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 outline-none min-h-[52px] md:h-[50px] text-base"
                       value={formData.town} onChange={e => setFormData({ ...formData, town: e.target.value })} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.needs}</label>
-                  <textarea maxLength={270} required rows="3" placeholder={t.needsPlaceholder} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition text-lg"
+                  <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase mb-1">{t.needs}</label>
+                  <textarea maxLength={270} required rows="3" placeholder={t.needsPlaceholder} className="w-full p-4 md:p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition text-base min-h-[80px]"
                     value={formData.needs} onChange={e => setFormData({ ...formData, needs: e.target.value })}></textarea>
                 </div>
 
@@ -589,8 +589,8 @@ function App() {
               </form>
             </div>
             <div className="p-4 border-t bg-white flex gap-3 sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-4 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition">{t.cancel}</button>
-              <button form="aid-form" type="submit" className="flex-1 bg-red-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-red-700 active:scale-95 transition text-lg">{t.submit}</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-4 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition min-h-[52px] text-base">{t.cancel}</button>
+              <button form="aid-form" type="submit" className="flex-1 bg-red-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-red-700 active:scale-95 transition text-base md:text-lg min-h-[52px]">{t.submit}</button>
             </div>
           </div>
 
@@ -600,7 +600,7 @@ function App() {
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <LocationPicker position={newLocation} setPosition={setNewLocation} setFormData={setFormData} t={t} />
             </MapContainer>
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-lg z-[1000] text-sm font-bold text-gray-700 md:hidden pointer-events-none">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-5 py-2.5 rounded-full shadow-lg z-[1000] text-base md:text-sm font-bold text-gray-700 md:hidden pointer-events-none">
               📍 {t.locDesc}
             </div>
           </div>

@@ -16,3 +16,70 @@ html, body, #root {
   height: 100%;
   z-index: 0;
 }
+
+/* ===== MOBILE-SPECIFIC FIXES ===== */
+
+/* Prevent horizontal scrolling on mobile */
+body {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth scrolling for mobile */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent Safari auto-zoom on inputs - ensure 16px minimum font size */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+/* Support for notched devices (iPhone 12, etc.) */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Improve touch target sizes globally - minimum 44x44px for iOS */
+button,
+select,
+input[type="submit"],
+input[type="button"],
+a {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Fix potential text overflow on mobile */
+* {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Improve tap highlighting on mobile */
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Fix for webkit-based mobile browsers */
+input,
+textarea,
+select,
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0.5rem;
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
