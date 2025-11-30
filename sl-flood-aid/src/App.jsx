@@ -96,8 +96,8 @@ const TRANSLATIONS = {
     needsPlaceholder: "උදා: ආහාර, බෝට්ටු, බෙහෙත්...",
     severity: "තත්වයේ බරපතලකම",
     sevCritical: "අතිශය බරපතල (ජීවිත අවදානම්)",
-    sevModerate: "බරපතල (ආහාර/ජලය අවශ්‍ය)",
-    sevLow: "සාමාන්‍ය (දේපල හානි)",
+    sevModerate: "බරපතල",
+    sevLow: "සාමාන්‍ය",
     locLabel: "ස්ථානය",
     locDesc: "'GPS' ඔබන්න හෝ සලකුණු කරන්න.",
     submit: "ඉල්ලීම යොමු කරන්න",
@@ -472,7 +472,7 @@ function App() {
         <div className="fixed inset-0 bg-white z-[9998] flex flex-col animate-in slide-in-from-right duration-300 h-[100dvh]">
           <div className="bg-green-700 p-4 text-white flex justify-between items-center shadow-md shrink-0">
             <h2 className="font-bold text-xl flex items-center gap-2"><Users /> {t.savedTitle}</h2>
-            <button onClick={() => setShowSaved(false)} className="bg-green-800 p-2 rounded-full hover:bg-green-600 transition"><X size={24} /></button>
+            <button onClick={() => setShowSaved(false)} className="bg-green-800 p-3 rounded-full hover:bg-green-600 transition"><X size={24} /></button>
           </div>
           <div className="p-4 overflow-y-auto pb-20 bg-slate-50 flex-1">
             {requests.filter(r => r.status === 'completed').length === 0 ? (
@@ -525,7 +525,7 @@ function App() {
           {/* Header for Mobile */}
           <div className="md:hidden bg-slate-50 p-4 flex justify-between items-center border-b shrink-0 shadow-sm">
             <h2 className="font-bold text-lg text-gray-800">{t.formTitle}</h2>
-            <button onClick={() => setShowForm(false)} className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition"><X size={20} /></button>
+            <button onClick={() => setShowForm(false)} className="bg-gray-200 p-3 rounded-full hover:bg-gray-300 transition"><X size={20} /></button>
           </div>
 
           {/* Form Section */}
