@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { supabase } from './supabaseClient'
-import { CheckCircle, Globe, ShieldAlert, Navigation, Locate, X, Info, Activity, AlertTriangle, Plus } from 'lucide-react'
+import { CheckCircle, Globe, ShieldAlert, Navigation, Locate, X, Info, Activity, AlertTriangle, Plus, Users } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet';
 
@@ -66,8 +66,24 @@ const TRANSLATIONS = {
     active: "Active Needs",
     critical: "Critical",
     moderate: "Moderate",
-    low: "Low"
+    low: "Low",
+    savedTitle: "Saved Lives",
+    noSaved: "No saved requests yet.",
+    savedBtn: "Saved",
+
+    step1Title: "Tap \"Request Help\"",
+    step1Desc: "Click the red button at the top right of the screen.",
+    step2Title: "Pin Location (Important!)",
+    step2Desc: "Click \"Use My GPS\" or drag the marker to the exact roof/house location.",
+    step3Title: "Fill Details",
+    step3Desc: "Enter a phone number and select Severity (Critical if life threatening).",
+    step4Title: "Mark as Helped",
+    step4Desc: "If you are a rescuer, click a pin, call the number, and once saved, click \"Mark as Helped\".",
+    footerBuiltFor: "Built for Sri Lanka Flood Relief 2025.",
+    footerMisuse: "Do not misuse.",
+    footerCredit: "Created by Sankalpa Gunasekara with Love❤️"
   },
+
   si: {
     title: "ගංවතුර සහන සේවය",
     requestBtn: "ආධාර ඉල්ලන්න",
@@ -105,7 +121,23 @@ const TRANSLATIONS = {
     active: "ක්‍රියාකාරී ඉල්ලීම්",
     critical: "අවදානම්",
     moderate: "බරපතල",
-    low: "සාමාන්‍ය"
+    low: "සාමාන්‍ය",
+    savedTitle: "බේරාගත් ජීවිත",
+    noSaved: "තවම දත්ත නොමැත.",
+    savedBtn: "බේරාගත්",
+
+    step1Title: "\"ආධාර ඉල්ලන්න\" බොත්තම ඔබන්න",
+    step1Desc: "තිරයේ ඉහළ දකුණු කෙළවරේ ඇති රතු බොත්තම ක්ලික් කරන්න.",
+    step2Title: "ස්ථානය සලකුණු කරන්න (වැදගත්!)",
+    step2Desc: "\"Use My GPS\" ඔබන්න හෝ සලකුණ (marker) නිවැරදිම ස්ථානයට ඇද දමන්න.",
+    step3Title: "තොරතුරු ඇතුලත් කරන්න",
+    step3Desc: "දුරකථන අංකය ඇතුළත් කර අවදානම් මට්ටම තෝරන්න (ජීවිත තර්ජනයක් නම් \"Critical\" තෝරන්න).",
+    step4Title: "බේරාගත් බව සලකුණු කරන්න",
+    step4Desc: "ඔබ සහන සේවකයෙක් නම්, ස්ථානයක් මත ඔබා, අදාළ අංකය අමතන්න. බේරාගත් පසු \"Mark as Helped\" ක්ලික් කරන්න.",
+    footerBuiltFor: "2025 ශ්‍රී ලංකා ගංවතුර සහන සේවාව සඳහා නිර්මාණය කරන ලද්දකි.",
+    footerMisuse: "අවභාවිතා නොකරන්න.",
+    footerCredit: "සංකල්ප ගුණසේකර විසින් ආදරයෙන් නිර්මාණය කරන ලදී ❤️"
+
   }
 };
 
@@ -240,6 +272,7 @@ function App() {
   const [requests, setRequests] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(true);
   const [lang, setLang] = useState('si');
   const t = TRANSLATIONS[lang];
@@ -318,9 +351,12 @@ function App() {
       <StatsWidget requests={requests} t={t} />
 
       {/* --- FLOATING CONTROLS --- */}
-      <div className="absolute bottom-20 right-4 z-[900] flex flex-col gap-3">
+      <div className="absolute top-40 right-4 z-[900] flex flex-col gap-3">
         <button onClick={() => setShowHelp(true)} className="bg-white text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition border border-gray-200">
           <Info size={24} />
+        </button>
+        <button onClick={() => setShowSaved(true)} className="bg-green-500 text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-green-50 active:scale-95 transition border border-green-200">
+          <Users size={24} />
         </button>
         <button onClick={() => setLang(lang === 'en' ? 'si' : 'en')} className="bg-white text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition font-bold border border-gray-200 text-lg">
           {lang === 'en' ? 'සිං' : 'En'}
@@ -393,38 +429,76 @@ function App() {
             <div className="flex gap-4 items-start">
               <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">1</div>
               <div>
-                <h4 className="font-bold text-lg text-gray-900">Tap "Request Help"</h4>
-                <p className="text-gray-600">Click the red button at the top right of the screen.</p>
+                <h4 className="font-bold text-lg text-gray-900">{t.step1Title}</h4>
+                <p className="text-gray-600">{t.step1Desc}</p>
               </div>
             </div>
 
             <div className="flex gap-4 items-start">
               <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">2</div>
               <div>
-                <h4 className="font-bold text-lg text-gray-900">Pin Location (Important!)</h4>
-                <p className="text-gray-600">Click "Use My GPS" or drag the marker to the exact roof/house location.</p>
+                <h4 className="font-bold text-lg text-gray-900">{t.step2Title}</h4>
+                <p className="text-gray-600">{t.step2Desc}</p>
               </div>
             </div>
 
             <div className="flex gap-4 items-start">
               <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">3</div>
               <div>
-                <h4 className="font-bold text-lg text-gray-900">Fill Details</h4>
-                <p className="text-gray-600">Enter a phone number and select Severity (Critical if life threatening).</p>
+                <h4 className="font-bold text-lg text-gray-900">{t.step3Title}</h4>
+                <p className="text-gray-600">{t.step3Desc}</p>
               </div>
             </div>
 
             <div className="flex gap-4 items-start">
               <div className="bg-green-100 text-green-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">4</div>
               <div>
-                <h4 className="font-bold text-lg text-gray-900">Mark as Helped</h4>
-                <p className="text-gray-600">If you are a rescuer, click a pin, call the number, and once saved, click "Mark as Helped".</p>
+                <h4 className="font-bold text-lg text-gray-900">{t.step4Title}</h4>
+                <p className="text-gray-600">{t.step4Desc}</p>
               </div>
             </div>
 
             <div className="mt-8 p-6 bg-slate-50 rounded-xl text-center text-sm text-gray-500 border border-slate-200">
-              Built for Sri Lanka Flood Relief 2025. <br /> Do not misuse.
+              {t.footerBuiltFor} <br />
+              {t.footerMisuse} <br />
+              <a href="#" className="hover:underline">{t.footerCredit}</a>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- SAVED REQUESTS MODAL --- */}
+      {showSaved && (
+        <div className="absolute inset-0 bg-white z-[9998] flex flex-col animate-in slide-in-from-right duration-300">
+          <div className="bg-green-700 p-4 text-white flex justify-between items-center shadow-md shrink-0">
+            <h2 className="font-bold text-xl flex items-center gap-2"><Users /> {t.savedTitle}</h2>
+            <button onClick={() => setShowSaved(false)} className="bg-green-800 p-2 rounded-full hover:bg-green-600 transition"><X size={24} /></button>
+          </div>
+          <div className="p-4 overflow-y-auto pb-20 bg-slate-50 flex-1">
+            {requests.filter(r => r.status === 'completed').length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                <CheckCircle size={48} className="mb-4 opacity-20" />
+                <p>{t.noSaved}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {requests.filter(r => r.status === 'completed').map(req => (
+                  <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border border-green-100 flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-gray-900">{req.name}</h3>
+                      <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                        <CheckCircle size={12} /> {t.completed}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">{req.needs}</p>
+                    <div className="flex justify-between items-center text-xs text-gray-400 mt-1">
+                      <span>{req.district} - {req.town}</span>
+                      <span>{new Date(req.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -477,13 +551,13 @@ function App() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.name}</label>
-                    <input required type="text" className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition"
+                    <input required type="text" maxLength={50} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition"
                       value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.phone}</label>
-                    <input required type="tel" className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition"
+                    <input required type="tel" maxLength={10} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition"
                       value={formData.contact_number} onChange={e => setFormData({ ...formData, contact_number: e.target.value })} />
                   </div>
                 </div>
@@ -498,20 +572,20 @@ function App() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.town}</label>
-                    <input required type="text" className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 outline-none h-[50px]"
+                    <input maxLength={50} required type="text" className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 outline-none h-[50px]"
                       value={formData.town} onChange={e => setFormData({ ...formData, town: e.target.value })} />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.needs}</label>
-                  <textarea required rows="3" placeholder={t.needsPlaceholder} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition text-lg"
+                  <textarea maxLength={270} required rows="3" placeholder={t.needsPlaceholder} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition text-lg"
                     value={formData.needs} onChange={e => setFormData({ ...formData, needs: e.target.value })}></textarea>
                 </div>
 
-                <div className="md:hidden text-sm text-center text-blue-700 bg-blue-50 p-3 rounded-lg border border-blue-100 font-medium">
+                {/* <div className="md:hidden text-sm text-center text-blue-700 bg-blue-50 p-3 rounded-lg border border-blue-100 font-medium">
                   ⬇️ {t.locDesc}
-                </div>
+                </div> */}
               </form>
             </div>
             <div className="p-4 border-t bg-white flex gap-3 sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
@@ -522,7 +596,7 @@ function App() {
 
           {/* Map Section */}
           <div className="w-full md:w-2/3 h-[40%] md:h-full relative border-b md:border-b-0 md:border-l border-gray-200 order-1 md:order-2">
-            <MapContainer center={[7.8731, 80.7718]} zoom={9} className="h-full w-full">
+            <MapContainer center={[7.8731, 80.7718]} zoom={9} className="h-full w-full" maxBounds={SL_BOUNDS} minZoom={7} >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <LocationPicker position={newLocation} setPosition={setNewLocation} setFormData={setFormData} t={t} />
             </MapContainer>
