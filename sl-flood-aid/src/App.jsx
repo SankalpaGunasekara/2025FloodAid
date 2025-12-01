@@ -84,7 +84,7 @@ const TRANSLATIONS = {
     step4Desc: "Click markers to see needs and directions.",
     footerBuiltFor: "Built for Sri Lanka Flood Relief 2025.",
     footerMisuse: "Do not misuse.",
-    footerCredit: "Created by Sankalpa Gunasekara with Love❤️"
+    footerCredit: "Built with ❤️ for Sri Lanka."
   },
   si: {
     title: "ගංවතුර සහන සේවය",
@@ -112,7 +112,7 @@ const TRANSLATIONS = {
     language: "English",
     statusUpdated: "තත්වය යාවත්කාලීන කරන ලදී!",
     requestAdded: "ඉල්ලීම ඇතුලත් කරන ලදී!",
-    getGps: "මගේ ස්ථානය (GPS)",
+    getGps: "Click to Auto (GPS)",
     navGoogle: "Google Maps යන්න",
     locFound: "ස්ථානය හමු විය!",
     stats: "සජීවී දත්ත",
@@ -141,7 +141,7 @@ const TRANSLATIONS = {
     step4Desc: "ස්ථානයක් මත ඔබා විස්තර බලන්න.",
     footerBuiltFor: "2025 ශ්‍රී ලංකා ගංවතුර සහන සේවාව සඳහා නිර්මාණය කරන ලද්දකි.",
     footerMisuse: "අවභාවිතා නොකරන්න.",
-    footerCredit: "සංකල්ප ගුණසේකර විසින් ආදරයෙන් නිර්මාණය කරන ලදී ❤️"
+    footerCredit: "Built with ❤️ for Sri Lanka."
   }
 };
 
@@ -224,7 +224,7 @@ function StatsWidget({ requests, t }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function App() {
@@ -235,6 +235,7 @@ function App() {
   const [filters, setFilters] = useState([]);
 
   const [showForm, setShowForm] = useState(false);
+  const [showSeverityPopup, setShowSeverityPopup] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(true);
@@ -340,7 +341,7 @@ function App() {
           </h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { setShowForm(!showForm); if (!showForm) setNewLocation({ lat: 7.8731, lng: 80.7718 }); }}
+          <button onClick={() => setShowSeverityPopup(true)}
             className="bg-red-600 text-white px-4 py-2 rounded-full font-bold shadow-lg hover:bg-red-700 text-sm transition active:scale-95 flex items-center gap-2">
             <Plus size={18} /> {t.requestBtn}
           </button>
@@ -361,16 +362,12 @@ function App() {
           {lang === 'en' ? 'සිං' : 'En'}
         </button>
 
-        <span className="text-sm font-bold text-slate-800 mt-5 bg-white px-2 py-1 rounded-full">Filters</span>
+        <span className="text-sm font-bold text-slate-800 mt-10 bg-white px-2 py-1 rounded-full">Filters</span>
         <button onClick={() => toggleFilter('need_medical')} className={` px-4  h-12 flex items-center justify-center rounded-full shadow-xl transition border active:scale-95 ${filters.includes('need_medical') ? 'bg-red-600 text-white border-red-700' : 'bg-white text-red-600 border-gray-200'}`}><Stethoscope size={24} /> Medical</button>
         <button onClick={() => toggleFilter('need_food_water')} className={`px-4 h-12 flex items-center justify-center rounded-full shadow-xl transition border active:scale-95 ${filters.includes('need_food_water') ? 'bg-orange-500 text-white border-orange-600' : 'bg-white text-orange-500 border-gray-200'}`}> Food/Water</button>
 
         <button onClick={() => toggleFilter('need_rescue')} className={`px-4 h-12 flex items-center justify-center rounded-full shadow-xl transition border active:scale-95 ${filters.includes('need_rescue') ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-blue-600 border-gray-200'}`}> Need Rescue</button>
         {filters.length > 0 && (<button onClick={() => setFilters([])} className="bg-gray-800 text-white w-12 h-12 flex items-center justify-center rounded-full shadow-xl active:scale-95 transition border border-gray-700"><X size={24} /></button>)}
-      </div>
-
-      {/* --- NEW RIGHT-SIDE FILTERS --- */}
-      <div className="absolute top-80 right-4 z-[900] flex flex-col gap-3 pr-[env(safe-area-inset-right)]">
       </div>
 
       {/* --- MAP --- */}
@@ -519,6 +516,60 @@ function App() {
         )
       }
 
+      {/* --- SEVERITY POPUP --- */}
+      {showSeverityPopup && (
+        <div className="fixed inset-0 bg-black/90 z-[10000] flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button onClick={() => setShowSeverityPopup(false)} className="absolute top-4 right-4 bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition">
+              <X size={20} />
+            </button>
+
+            <h3 className="font-bold text-xl mb-6 text-gray-900 text-center">{t.severity}</h3>
+
+            <div className="space-y-3">
+              <button onClick={() => {
+                setFormData({ ...formData, severity: 'critical' });
+                setShowSeverityPopup(false);
+                setShowForm(true);
+                setNewLocation({ lat: 7.8731, lng: 80.7718 });
+              }} className="w-full bg-red-50 border-2 border-red-100 p-4 rounded-xl flex items-center gap-4 hover:bg-red-100 hover:border-red-200 transition active:scale-95 group">
+                <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center font-bold shadow-sm group-hover:scale-110 transition">🔴</div>
+                <div className="text-left">
+                  <div className="font-bold text-red-900 text-lg">{t.sevCritical}</div>
+                  <div className="text-xs text-red-700 opacity-80">Life threatening situation</div>
+                </div>
+              </button>
+
+              <button onClick={() => {
+                setFormData({ ...formData, severity: 'moderate' });
+                setShowSeverityPopup(false);
+                setShowForm(true);
+                setNewLocation({ lat: 7.8731, lng: 80.7718 });
+              }} className="w-full bg-orange-50 border-2 border-orange-100 p-4 rounded-xl flex items-center gap-4 hover:bg-orange-100 hover:border-orange-200 transition active:scale-95 group">
+                <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold shadow-sm group-hover:scale-110 transition">🟠</div>
+                <div className="text-left">
+                  <div className="font-bold text-orange-900 text-lg">{t.sevModerate}</div>
+                  <div className="text-xs text-orange-700 opacity-80">Serious but not immediate</div>
+                </div>
+              </button>
+
+              <button onClick={() => {
+                setFormData({ ...formData, severity: 'low' });
+                setShowSeverityPopup(false);
+                setShowForm(true);
+                setNewLocation({ lat: 7.8731, lng: 80.7718 });
+              }} className="w-full bg-blue-50 border-2 border-blue-100 p-4 rounded-xl flex items-center gap-4 hover:bg-blue-100 hover:border-blue-200 transition active:scale-95 group">
+                <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold shadow-sm group-hover:scale-110 transition">🔵</div>
+                <div className="text-left">
+                  <div className="font-bold text-blue-900 text-lg">{t.sevLow}</div>
+                  <div className="text-xs text-blue-700 opacity-80">Can wait / Info only</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- REQUEST FORM MODAL (MOBILE OPTIMIZED) --- */}
       {
         showForm && (
@@ -618,7 +669,7 @@ function App() {
           </div>
         )
       }
-    </div >
+    </div>
   )
 }
 export default App
