@@ -81,7 +81,7 @@ const TRANSLATIONS = {
     step4Desc: "If you are a rescuer, click a pin, call the number, and once saved, click \"Mark as Helped\".",
     footerBuiltFor: "Built for Sri Lanka Flood Relief 2025.",
     footerMisuse: "Do not misuse.",
-    footerCredit: "Created by Sankalpa Gunasekara with Love❤️"
+    footerCredit: "Built with ❤️ for Sri Lanka."
   },
 
   si: {
