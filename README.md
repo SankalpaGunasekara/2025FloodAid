@@ -2,9 +2,6 @@
 
 A real-time, map-based humanitarian aid coordination platform designed for the 2025 Sri Lanka floods. This application connects people in need of rescue, food, or medical assistance with rescue teams and volunteers.
 
-![SL Flood Relief](https://via.placeholder.com/800x400?text=SL+Flood+Relief+App+Preview)
-*(Replace with actual screenshot)*
-
 ## 🚨 Core Features
 
 - **Real-time Map Interface**: Interactive map showing all active requests with severity color-coding.
