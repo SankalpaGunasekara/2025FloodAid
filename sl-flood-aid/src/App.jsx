@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { supabase } from './supabaseClient'
-import { CheckCircle, Globe, ShieldAlert, Navigation, Locate, X, Info, Activity, AlertTriangle, Plus, Users } from 'lucide-react'
+import { CheckCircle, ShieldAlert, Navigation, Locate, X, Info, Activity, AlertTriangle, Plus, Users, Anchor, Stethoscope, Utensils, Filter } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet';
 
@@ -37,12 +37,13 @@ const TRANSLATIONS = {
     phone: "Mobile Number",
     district: "District",
     town: "Town / Village",
-    needs: "What is needed?",
-    needsPlaceholder: "Ex: Food, Boat, Medicine...",
+    needs: "Note / Other Details",
+    needsPlaceholder: "Ex: Baby milk needed, electric line down...",
+    peopleCount: "People Count",
     severity: "Severity",
-    sevCritical: "Critical (Life Threatening)",
-    sevModerate: "Moderate (Trapped/Need Food)",
-    sevLow: "Low (Property Damage)",
+    sevCritical: "Critical",
+    sevModerate: "Moderate",
+    sevLow: "Low",
     locLabel: "Set Location",
     locDesc: "Tap 'GPS' or Tap on Map",
     submit: "Submit Request",
@@ -57,10 +58,6 @@ const TRANSLATIONS = {
     getGps: "Use My GPS",
     navGoogle: "Open in Maps",
     locFound: "Location Found!",
-    howToTitle: "How to Use",
-    disclaimerTitle: "⚠️ Important Warning",
-    disclaimerText: "This is a humanitarian tool for saving lives. Do NOT submit fake requests.",
-    agree: "I Understand",
     stats: "Live Stats",
     completed: "Saved",
     active: "Active Needs",
@@ -69,21 +66,26 @@ const TRANSLATIONS = {
     low: "Low",
     savedTitle: "Saved Lives",
     noSaved: "No saved requests yet.",
-    savedBtn: "Saved",
-
+    catRescue: "Rescue",
+    catMedical: "Medical",
+    catFood: "Food/Water",
+    filterTitle: "Filters:",
+    disclaimerTitle: "⚠️ Important Warning",
+    disclaimerText: "Do NOT submit fake requests. This tool is for saving lives.",
+    agree: "I Understand",
+    howToTitle: "How to Use",
     step1Title: "Tap \"Request Help\"",
-    step1Desc: "Click the red button at the top right of the screen.",
-    step2Title: "Pin Location (Important!)",
-    step2Desc: "Click \"Use My GPS\" or drag the marker to the exact roof/house location.",
-    step3Title: "Fill Details",
-    step3Desc: "Enter a phone number and select Severity (Critical if life threatening).",
-    step4Title: "Mark as Helped",
-    step4Desc: "If you are a rescuer, click a pin, call the number, and once saved, click \"Mark as Helped\".",
+    step1Desc: "Click the red button at the top right.",
+    step2Title: "Pin Location",
+    step2Desc: "Use GPS or drag the pin to your exact roof.",
+    step3Title: "Select Needs",
+    step3Desc: "Tick what you need (Boat, Food, Medicine).",
+    step4Title: "Rescuers",
+    step4Desc: "Click markers to see needs and directions.",
     footerBuiltFor: "Built for Sri Lanka Flood Relief 2025.",
     footerMisuse: "Do not misuse.",
     footerCredit: "Built with ❤️ for Sri Lanka."
   },
-
   si: {
     title: "ගංවතුර සහන සේවය",
     requestBtn: "ආධාර ඉල්ලන්න",
@@ -92,8 +94,9 @@ const TRANSLATIONS = {
     phone: "දුරකථන අංකය",
     district: "දිස්ත්‍රික්කය",
     town: "නගරය / ගම්මානය",
-    needs: "අවශ්‍ය දේ",
-    needsPlaceholder: "උදා: ආහාර, බෝට්ටු, බෙහෙත්...",
+    needs: "වෙනත් විස්තර / සටහන්",
+    needsPlaceholder: "උදා: කුඩා දරුවන් සිටී, විදුලි රැහැන් කඩා වැටී ඇත...",
+    peopleCount: "කී දෙනෙක් සිටීද?",
     severity: "තත්වයේ බරපතලකම",
     sevCritical: "අතිශය බරපතල (ජීවිත අවදානම්)",
     sevModerate: "බරපතල",
@@ -112,32 +115,33 @@ const TRANSLATIONS = {
     getGps: "මගේ ස්ථානය (GPS)",
     navGoogle: "Google Maps යන්න",
     locFound: "ස්ථානය හමු විය!",
-    howToTitle: "භාවිතා කරන ආකාරය",
-    disclaimerTitle: "⚠️ වැදගත් නිවේදනයයි",
-    disclaimerText: "මෙය ජීවිත බේරා ගැනීම සඳහා වූ මෙවලමකි. කරුණාකර අසත්‍ය තොරතුරු ඇතුළත් නොකරන්න.",
-    agree: "මම එකඟ වෙමි",
     stats: "සජීවී දත්ත",
-    completed: "බේරාගන්නා ලද",
+    completed: "බේරාගත්",
     active: "ක්‍රියාකාරී ඉල්ලීම්",
     critical: "අවදානම්",
     moderate: "බරපතල",
     low: "සාමාන්‍ය",
     savedTitle: "බේරාගත් ජීවිත",
     noSaved: "තවම දත්ත නොමැත.",
-    savedBtn: "බේරාගත්",
-
+    catRescue: "සිරවී ඇත",
+    catMedical: "රෝගී / බෙහෙත්",
+    catFood: "ආහාර / ජලය",
+    filterTitle: "පෙරහන්:",
+    disclaimerTitle: "⚠️ වැදගත් නිවේදනයයි",
+    disclaimerText: "මෙය ජීවිත බේරා ගැනීම සඳහා වේ. කරුණාකර අසත්‍ය තොරතුරු ඇතුළත් නොකරන්න.",
+    agree: "මම එකඟ වෙමි",
+    howToTitle: "භාවිතා කරන ආකාරය",
     step1Title: "\"ආධාර ඉල්ලන්න\" බොත්තම ඔබන්න",
     step1Desc: "තිරයේ ඉහළ දකුණු කෙළවරේ ඇති රතු බොත්තම ක්ලික් කරන්න.",
-    step2Title: "ස්ථානය සලකුණු කරන්න (වැදගත්!)",
+    step2Title: "ස්ථානය සලකුණු කරන්න",
     step2Desc: "\"Use My GPS\" ඔබන්න හෝ සලකුණ (marker) නිවැරදිම ස්ථානයට ඇද දමන්න.",
-    step3Title: "තොරතුරු ඇතුලත් කරන්න",
-    step3Desc: "දුරකථන අංකය ඇතුළත් කර අවදානම් මට්ටම තෝරන්න (ජීවිත තර්ජනයක් නම් \"Critical\" තෝරන්න).",
-    step4Title: "බේරාගත් බව සලකුණු කරන්න",
-    step4Desc: "ඔබ සහන සේවකයෙක් නම්, ස්ථානයක් මත ඔබා, අදාළ අංකය අමතන්න. බේරාගත් පසු \"Mark as Helped\" ක්ලික් කරන්න.",
+    step3Title: "අවශ්‍ය දේ තෝරන්න",
+    step3Desc: "ඔබට අවශ්‍ය දේ ලකුණු කරන්න (බෝට්ටු, බෙහෙත්, ආහාර).",
+    step4Title: "සහන සේවකයින්",
+    step4Desc: "ස්ථානයක් මත ඔබා විස්තර බලන්න.",
     footerBuiltFor: "2025 ශ්‍රී ලංකා ගංවතුර සහන සේවාව සඳහා නිර්මාණය කරන ලද්දකි.",
     footerMisuse: "අවභාවිතා නොකරන්න.",
     footerCredit: "සංකල්ප ගුණසේකර විසින් ආදරයෙන් නිර්මාණය කරන ලදී ❤️"
-
   }
 };
 
@@ -159,7 +163,6 @@ function LocationPicker({ position, setPosition, setFormData, t }) {
   const map = useMap();
   const markerRef = useRef(null);
 
-  // Sync map view when position changes (e.g. from form GPS button)
   useEffect(() => {
     if (position) {
       map.flyTo(position, 16, { animate: true });
@@ -173,14 +176,6 @@ function LocationPicker({ position, setPosition, setFormData, t }) {
     },
   });
 
-  const handleGPS = () => {
-    map.locate().on("locationfound", function (e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, 16);
-      fetchDistrict(e.latlng.lat, e.latlng.lng, setFormData);
-    });
-  };
-
   const eventHandlers = useMemo(() => ({
     dragend() {
       const marker = markerRef.current;
@@ -192,20 +187,11 @@ function LocationPicker({ position, setPosition, setFormData, t }) {
     },
   }), [setPosition, setFormData]);
 
-  return (
-    <>
-      <div className="absolute top-3 right-3 z-[999]">
-        {/* <button type="button" onClick={handleGPS} className="bg-blue-600 text-white p-2 rounded-lg shadow-xl flex items-center gap-2 text-xs font-bold px-3 hover:bg-blue-700 active:scale-95 transition">
-          <Locate size={16} /> {t.getGps}
-        </button> */}
-      </div>
-      {position && (
-        <Marker draggable={true} eventHandlers={eventHandlers} position={position} ref={markerRef} icon={icons.default}>
-          <Popup>{t.locLabel}</Popup>
-        </Marker>
-      )}
-    </>
-  );
+  return position ? (
+    <Marker draggable={true} eventHandlers={eventHandlers} position={position} ref={markerRef} icon={icons.default}>
+      <Popup>{t.locLabel}</Popup>
+    </Marker>
+  ) : null;
 }
 
 // --- COMPONENT: STATS WIDGET ---
@@ -213,11 +199,9 @@ function StatsWidget({ requests, t }) {
   const completed = requests.filter(r => r.status === 'completed').length;
   const active = requests.filter(r => r.status === 'active').length;
   const critical = requests.filter(r => r.status === 'active' && r.severity === 'critical').length;
-  const moderate = requests.filter(r => r.status === 'active' && r.severity === 'moderate').length;
-  const low = requests.filter(r => r.status === 'active' && r.severity === 'low').length;
 
   return (
-    <div className="bg-slate-800 text-white py-2 px-4 flex items-center shadow-inner z-10 text-xs shrink-0 border-t border-slate-700 overflow-hidden relative">
+    <div className="bg-slate-800 text-white py-2 px-4 flex items-center shadow-inner z-10 text-xs shrink-0 border-t border-slate-700 overflow-hidden relative h-10">
       <div className="flex items-center gap-2 font-bold text-gray-400 uppercase tracking-wider shrink-0 mr-4 z-20 bg-slate-800 pr-2">
         <Activity size={14} /> {t.stats}
       </div>
@@ -230,38 +214,13 @@ function StatsWidget({ requests, t }) {
           <span className="font-bold text-red-400">{t.critical}:</span>
           <span className="font-bold bg-red-900/50 text-red-200 px-2 py-0.5 rounded border border-red-800">{critical}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-orange-400">{t.moderate}:</span>
-          <span className="font-bold bg-orange-900/50 text-orange-200 px-2 py-0.5 rounded border border-orange-800">{moderate}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-blue-400">{t.low}:</span>
-          <span className="font-bold bg-blue-900/50 text-blue-200 px-2 py-0.5 rounded border border-blue-800">{low}</span>
-        </div>
         <div className="flex items-center gap-2 border-l border-slate-600 pl-4">
           <span className="font-bold text-green-400">{t.completed}:</span>
           <span className="font-bold text-green-400">{completed}</span>
         </div>
-        {/* Duplicate for seamless loop - HIDDEN ON DESKTOP */}
+        {/* Mobile Duplicate for Loop */}
         <div className="flex items-center gap-2 pl-8 md:hidden">
-          <span className="font-semibold text-gray-300">{t.active}:</span>
-          <span className="font-bold">{active}</span>
-        </div>
-        <div className="flex items-center gap-2 md:hidden">
-          <span className="font-bold text-red-400">{t.critical}:</span>
-          <span className="font-bold bg-red-900/50 text-red-200 px-2 py-0.5 rounded border border-red-800">{critical}</span>
-        </div>
-        <div className="flex items-center gap-2 md:hidden">
-          <span className="font-bold text-orange-400">{t.moderate}:</span>
-          <span className="font-bold bg-orange-900/50 text-orange-200 px-2 py-0.5 rounded border border-orange-800">{moderate}</span>
-        </div>
-        <div className="flex items-center gap-2 md:hidden">
-          <span className="font-bold text-blue-400">{t.low}:</span>
-          <span className="font-bold bg-blue-900/50 text-blue-200 px-2 py-0.5 rounded border border-blue-800">{low}</span>
-        </div>
-        <div className="flex items-center gap-2 border-l border-slate-600 pl-4 md:hidden">
-          <span className="font-bold text-green-400">{t.completed}:</span>
-          <span className="font-bold text-green-400">{completed}</span>
+          <span className="font-semibold text-gray-300">{t.active}:</span> <span className="font-bold">{active}</span>
         </div>
       </div>
     </div>
@@ -270,6 +229,11 @@ function StatsWidget({ requests, t }) {
 
 function App() {
   const [requests, setRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
+
+  // Multi-select filters
+  const [filters, setFilters] = useState([]);
+
   const [showForm, setShowForm] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
@@ -279,9 +243,12 @@ function App() {
 
   const [verifyId, setVerifyId] = useState(null);
   const [verifyText, setVerifyText] = useState("");
+
   const [formData, setFormData] = useState({
-    name: '', contact_number: '', needs: '', district: 'Colombo', town: '', severity: 'moderate'
+    name: '', contact_number: '', needs: '', people_count: 1, district: 'Colombo', town: '', severity: 'moderate',
+    need_rescue: false, need_food_water: false, need_medical: false
   });
+
   const [newLocation, setNewLocation] = useState(null);
 
   useEffect(() => {
@@ -292,8 +259,30 @@ function App() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // --- FILTER LOGIC ---
+  useEffect(() => {
+    if (filters.length === 0) {
+      // Show all active
+      setFilteredRequests(requests.filter(r => r.status === 'active'));
+    } else {
+      // Show if status is active AND matches ANY selected filter
+      setFilteredRequests(requests.filter(r => {
+        if (r.status !== 'active') return false;
+        // Check if the request has ANY of the true flags matching selected filters
+        return filters.some(filterKey => r[filterKey] === true);
+      }));
+    }
+  }, [filters, requests]);
+
+  const toggleFilter = (key) => {
+    if (filters.includes(key)) {
+      setFilters(filters.filter(f => f !== key));
+    } else {
+      setFilters([...filters, key]);
+    }
+  };
+
   async function fetchRequests() {
-    // Fetch ALL requests (active and completed) to calculate stats
     const { data } = await supabase.from('aid_requests').select('*');
     if (data) setRequests(data);
   }
@@ -301,9 +290,20 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newLocation) { alert("Please select location on map"); return; }
-    const { error } = await supabase.from('aid_requests').insert([{ ...formData, latitude: newLocation.lat, longitude: newLocation.lng }]);
+
+    const { error } = await supabase.from('aid_requests').insert([{
+      ...formData,
+      latitude: newLocation.lat,
+      longitude: newLocation.lng
+    }]);
+
     if (error) { alert("Error: " + error.message); }
-    else { alert(t.requestAdded); setShowForm(false); setFormData({ name: '', contact_number: '', needs: '', district: 'Colombo', town: '', severity: 'moderate' }); setNewLocation(null); }
+    else {
+      alert(t.requestAdded);
+      setShowForm(false);
+      setFormData({ name: '', contact_number: '', needs: '', people_count: 1, district: 'Colombo', town: '', severity: 'moderate', need_rescue: false, need_food_water: false, need_medical: false });
+      setNewLocation(null);
+    }
   };
 
   const handleVerifySubmit = async () => {
@@ -346,21 +346,31 @@ function App() {
           </button>
         </div>
       </div>
-
       {/* --- STATS BAR --- */}
       <StatsWidget requests={requests} t={t} />
 
       {/* --- FLOATING CONTROLS --- */}
-      <div className="absolute top-40 right-4 z-[900] flex flex-col gap-3 pr-[env(safe-area-inset-right)]">
+      <div className="absolute top-40 right-4 z-[900] flex flex-col items-end gap-3 pr-[env(safe-area-inset-right)]">
         <button onClick={() => setShowHelp(true)} className="bg-white text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition border border-gray-200">
           <Info size={24} />
         </button>
-        <button onClick={() => setShowSaved(true)} className="bg-green-500 text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-green-50 active:scale-95 transition border border-green-200">
+        <button onClick={() => setShowSaved(true)} className="bg-green-500 text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-green-600 active:scale-95 transition border border-green-200">
           <Users size={24} />
         </button>
         <button onClick={() => setLang(lang === 'en' ? 'si' : 'en')} className="bg-white text-slate-800 w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-gray-50 active:scale-95 transition font-bold border border-gray-200 text-lg">
           {lang === 'en' ? 'සිං' : 'En'}
         </button>
+
+        <span className="text-sm font-bold text-slate-800 mt-5 bg-white px-2 py-1 rounded-full">Filters</span>
+        <button onClick={() => toggleFilter('need_medical')} className={` px-4  h-12 flex items-center justify-center rounded-full shadow-xl transition border active:scale-95 ${filters.includes('need_medical') ? 'bg-red-600 text-white border-red-700' : 'bg-white text-red-600 border-gray-200'}`}><Stethoscope size={24} /> Medical</button>
+        <button onClick={() => toggleFilter('need_food_water')} className={`px-4 h-12 flex items-center justify-center rounded-full shadow-xl transition border active:scale-95 ${filters.includes('need_food_water') ? 'bg-orange-500 text-white border-orange-600' : 'bg-white text-orange-500 border-gray-200'}`}> Food/Water</button>
+
+        <button onClick={() => toggleFilter('need_rescue')} className={`px-4 h-12 flex items-center justify-center rounded-full shadow-xl transition border active:scale-95 ${filters.includes('need_rescue') ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-blue-600 border-gray-200'}`}> Need Rescue</button>
+        {filters.length > 0 && (<button onClick={() => setFilters([])} className="bg-gray-800 text-white w-12 h-12 flex items-center justify-center rounded-full shadow-xl active:scale-95 transition border border-gray-700"><X size={24} /></button>)}
+      </div>
+
+      {/* --- NEW RIGHT-SIDE FILTERS --- */}
+      <div className="absolute top-80 right-4 z-[900] flex flex-col gap-3 pr-[env(safe-area-inset-right)]">
       </div>
 
       {/* --- MAP --- */}
@@ -368,28 +378,39 @@ function App() {
         <MapContainer center={[7.8731, 80.7718]} zoom={8} className="h-full w-full" maxBounds={SL_BOUNDS} minZoom={7}>
           <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* Only show ACTIVE requests on map, but keep completed in stats */}
-          {requests.filter(r => r.status === 'active').map((req) => (
+          {filteredRequests.map((req) => (
             <Marker key={req.id} position={[req.latitude, req.longitude]} icon={icons[req.severity] || icons.moderate}>
               <Popup>
                 <div className="p-1 min-w-[240px]">
-                  <div className={`text-xs font-bold uppercase mb-2 px-2 py-1 rounded w-fit text-white ${req.severity === 'critical' ? 'bg-red-600' : req.severity === 'low' ? 'bg-blue-500' : 'bg-orange-500'}`}>
-                    {req.severity === 'critical' ? t.sevCritical : req.severity === 'low' ? t.sevLow : t.sevModerate}
+                  {/* Badges */}
+                  <div className="flex flex-wrap gap-1.5 mb-2.5">
+                    {req.severity === 'critical' && <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">{t.critical}</span>}
+                    {req.need_medical && <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold border border-red-200 flex items-center gap-1"><Stethoscope size={10} /> Medical</span>}
+                    {req.need_rescue && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold border border-blue-200 flex items-center gap-1"><Anchor size={10} /> Rescue</span>}
+                    {req.need_food_water && <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-bold border border-orange-200 flex items-center gap-1"><Utensils size={10} /> Food</span>}
                   </div>
+
                   <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1">{req.needs}</h3>
-                  <p className="text-sm font-semibold text-gray-700">{req.name}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-sm font-semibold text-gray-700">{req.name}</p>
+                    {req.people_count > 0 && (
+                      <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                        <Users size={10} /> {req.people_count}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-600 text-xs mb-3">{req.district} - {req.town}</p>
 
                   <div className="flex gap-2 mb-3">
-                    <a href={`tel:${req.contact_number}`} className="flex-1 bg-green-100 text-green-800 py-2 rounded-lg text-center text-sm font-bold no-underline border border-green-200 hover:bg-green-200 transition">
+                    <a href={`tel:${req.contact_number}`} className="flex-1 bg-green-100 text-green-800 py-2.5 rounded-lg text-center text-sm font-bold no-underline border border-green-200 hover:bg-green-200 transition">
                       📞 Call
                     </a>
                     <a href={`https://www.google.com/maps/dir/?api=1&destination=${req.latitude},${req.longitude}`} target="_blank" rel="noreferrer"
-                      className="flex-1 bg-blue-100 text-blue-800 py-2 rounded-lg text-center text-sm font-bold no-underline border border-blue-200 flex justify-center items-center gap-1 hover:bg-blue-200 transition">
+                      className="flex-1 bg-blue-100 text-blue-800 py-2.5 rounded-lg text-center text-sm font-bold no-underline border border-blue-200 flex justify-center items-center gap-1 hover:bg-blue-200 transition">
                       <Navigation size={14} /> Map
                     </a>
                   </div>
-                  <button onClick={() => setVerifyId(req.id)} className="w-full bg-slate-800 text-white py-2 rounded-lg text-sm font-bold hover:bg-black flex justify-center items-center gap-2 transition">
+                  <button onClick={() => setVerifyId(req.id)} className="w-full bg-slate-800 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-black flex justify-center items-center gap-2 transition">
                     <CheckCircle size={16} /> {t.markHelped}
                   </button>
                   <div className="text-[10px] text-gray-400 mt-2 text-right">{new Date(req.created_at).toLocaleString()}</div>
@@ -399,73 +420,55 @@ function App() {
           ))}
           {showForm && <LocationPicker position={newLocation} setPosition={setNewLocation} setFormData={setFormData} t={t} />}
         </MapContainer>
-      </div>
+      </div >
 
       {/* --- WARNING MODAL --- */}
-      {showDisclaimer && (
-        <div className="fixed inset-0 bg-black/90 z-[10000] flex items-center justify-center p-6 backdrop-blur-sm touch-none">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl animate-in zoom-in duration-300">
-            <AlertTriangle size={56} className="text-red-600 mx-auto mb-4" />
-            <h3 className="font-bold text-2xl mb-3 text-gray-900">{t.disclaimerTitle}</h3>
-            <p className="text-base text-gray-600 mb-8 leading-relaxed">
-              {t.disclaimerText}
-            </p>
-            <button onClick={() => setShowDisclaimer(false)} className="w-full bg-red-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-red-700 active:scale-95 transition">
-              {t.agree}
-            </button>
+      {
+        showDisclaimer && (
+          <div className="fixed inset-0 bg-black/90 z-[10000] flex items-center justify-center p-6 backdrop-blur-sm touch-none">
+            <div className="bg-white p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl animate-in zoom-in duration-300">
+              <AlertTriangle size={56} className="text-red-600 mx-auto mb-4" />
+              <h3 className="font-bold text-2xl mb-3 text-gray-900">{t.disclaimerTitle}</h3>
+              <p className="text-base text-gray-600 mb-8 leading-relaxed">{t.disclaimerText}</p>
+              <button onClick={() => setShowDisclaimer(false)} className="w-full bg-red-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-red-700 active:scale-95 transition">{t.agree}</button>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* --- HOW TO USE PAGE --- */}
-      {showHelp && (
-        <div className="fixed inset-0 bg-white z-[9998] flex flex-col animate-in slide-in-from-right duration-300 h-[100dvh]">
-          <div className="bg-slate-900 p-4 text-white flex justify-between items-center shadow-md shrink-0">
-            <h2 className="font-bold text-xl flex items-center gap-2"><Info /> {t.howToTitle}</h2>
-            <button onClick={() => setShowHelp(false)} className="bg-slate-800 p-2 rounded-full hover:bg-slate-700 transition"><X size={24} /></button>
-          </div>
-          <div className="p-6 overflow-y-auto space-y-8 pb-20">
-
-            <div className="flex gap-4 items-start">
-              <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">1</div>
-              <div>
-                <h4 className="font-bold text-lg text-gray-900">{t.step1Title}</h4>
-                <p className="text-gray-600">{t.step1Desc}</p>
-              </div>
+      {
+        showHelp && (
+          <div className="fixed inset-0 bg-white z-[9998] flex flex-col animate-in slide-in-from-right duration-300 h-[100dvh]">
+            <div className="bg-slate-900 p-4 text-white flex justify-between items-center shadow-md shrink-0">
+              <h2 className="font-bold text-xl flex items-center gap-2"><Info /> {t.howToTitle}</h2>
+              <button onClick={() => setShowHelp(false)} className="bg-slate-800 p-2 rounded-full hover:bg-slate-700 transition"><X size={24} /></button>
             </div>
-
-            <div className="flex gap-4 items-start">
-              <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">2</div>
-              <div>
-                <h4 className="font-bold text-lg text-gray-900">{t.step2Title}</h4>
-                <p className="text-gray-600">{t.step2Desc}</p>
+            <div className="p-6 overflow-y-auto space-y-8 pb-20">
+              {/* Instructions */}
+              <div className="flex gap-4 items-start">
+                <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">1</div>
+                <div><h4 className="font-bold text-lg text-gray-900">{t.step1Title}</h4><p className="text-gray-600">{t.step1Desc}</p></div>
               </div>
-            </div>
-
-            <div className="flex gap-4 items-start">
-              <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">3</div>
-              <div>
-                <h4 className="font-bold text-lg text-gray-900">{t.step3Title}</h4>
-                <p className="text-gray-600">{t.step3Desc}</p>
+              <div className="flex gap-4 items-start">
+                <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">2</div>
+                <div><h4 className="font-bold text-lg text-gray-900">{t.step2Title}</h4><p className="text-gray-600">{t.step2Desc}</p></div>
               </div>
-            </div>
-
-            <div className="flex gap-4 items-start">
-              <div className="bg-green-100 text-green-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">4</div>
-              <div>
-                <h4 className="font-bold text-lg text-gray-900">{t.step4Title}</h4>
-                <p className="text-gray-600">{t.step4Desc}</p>
+              <div className="flex gap-4 items-start">
+                <div className="bg-red-100 text-red-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">3</div>
+                <div><h4 className="font-bold text-lg text-gray-900">{t.step3Title}</h4><p className="text-gray-600">{t.step3Desc}</p></div>
               </div>
-            </div>
-
-            <div className="mt-8 p-6 bg-slate-50 rounded-xl text-center text-sm text-gray-500 border border-slate-200">
-              {t.footerBuiltFor} <br />
-              {t.footerMisuse} <br />
-              <a href="#" className="hover:underline">{t.footerCredit}</a>
+              <div className="flex gap-4 items-start">
+                <div className="bg-green-100 text-green-600 font-bold w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg">4</div>
+                <div><h4 className="font-bold text-lg text-gray-900">{t.step4Title}</h4><p className="text-gray-600">{t.step4Desc}</p></div>
+              </div>
+              <div className="mt-8 p-6 bg-slate-50 rounded-xl text-center text-sm text-gray-500 border border-slate-200">
+                {t.footerBuiltFor} <br /> {t.footerMisuse} <br /> <a href="#" className="hover:underline">{t.footerCredit}</a>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* --- SAVED REQUESTS MODAL --- */}
       {showSaved && (
@@ -504,20 +507,21 @@ function App() {
       )}
 
       {/* --- VERIFICATION MODAL --- */}
-      {verifyId && (
-        <div className="fixed inset-0 bg-black/90 z-[10000] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl animate-in zoom-in duration-200">
-            <h3 className="font-bold text-xl mb-3 text-gray-900">{t.verifyTitle}</h3>
-            <p className="text-base text-gray-600 mb-6">{t.verifyDesc}</p>
-            <input type="text" placeholder="SAVED" className="w-full border-2 border-gray-300 p-4 rounded-xl mb-6 uppercase text-center tracking-[0.5em] font-bold text-2xl focus:border-red-500 outline-none focus:ring-4 ring-red-100 transition"
-              value={verifyText} onChange={(e) => setVerifyText(e.target.value)} />
-            <div className="flex gap-3">
-              <button onClick={() => setVerifyId(null)} className="flex-1 py-4 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition">{t.cancel}</button>
-              <button onClick={handleVerifySubmit} className="flex-1 bg-red-600 text-white rounded-xl font-bold shadow-lg hover:bg-red-700 active:scale-95 transition">{t.confirm}</button>
+      {
+        verifyId && (
+          <div className="fixed inset-0 bg-black/90 z-[10000] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl animate-in zoom-in duration-200">
+              <h3 className="font-bold text-xl mb-3 text-gray-900">{t.verifyTitle}</h3>
+              <p className="text-base text-gray-600 mb-6">{t.verifyDesc}</p>
+              <input type="text" placeholder="SAVED" className="w-full border-2 border-gray-300 p-4 rounded-xl mb-6 uppercase text-center tracking-[0.5em] font-bold text-2xl focus:border-red-500 outline-none focus:ring-4 ring-red-100 transition" value={verifyText} onChange={(e) => setVerifyText(e.target.value)} />
+              <div className="flex gap-3">
+                <button onClick={() => setVerifyId(null)} className="flex-1 py-4 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition">{t.cancel}</button>
+                <button onClick={handleVerifySubmit} className="flex-1 bg-red-600 text-white rounded-xl font-bold shadow-lg hover:bg-red-700 active:scale-95 transition">{t.confirm}</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* --- REQUEST FORM MODAL (MOBILE OPTIMIZED) --- */}
       {showForm && (
@@ -548,44 +552,54 @@ function App() {
                   </select>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.name}</label>
-                    <input required type="text" maxLength={50} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition"
-                      value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                  </div>
+                {/* --- BIG CHECKBOXES --- */}
+                <div className="grid grid-cols-1 gap-3">
+                  <label className={`flex items-center gap-4 p-4 rounded-xl border transition cursor-pointer select-none active:scale-[0.98] ${formData.need_rescue ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-400' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                    <div className={`w-6 h-6 rounded border flex items-center justify-center ${formData.need_rescue ? 'bg-blue-600 border-blue-600' : 'border-gray-400'}`}>
+                      {formData.need_rescue && <span className="text-white text-sm">✓</span>}
+                    </div>
+                    <input type="checkbox" className="hidden" checked={formData.need_rescue} onChange={e => setFormData({ ...formData, need_rescue: e.target.checked })} />
+                    <span className="font-bold text-slate-800 flex items-center gap-2 leading-none"><Anchor size={20} /> {t.catRescue}</span>
+                  </label>
 
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.phone}</label>
-                    <input required type="tel" maxLength={10} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition"
-                      value={formData.contact_number} onChange={e => setFormData({ ...formData, contact_number: e.target.value })} />
+                  <label className={`flex items-center gap-4 p-4 rounded-xl border transition cursor-pointer select-none active:scale-[0.98] ${formData.need_food_water ? 'bg-orange-50 border-orange-400 ring-1 ring-orange-400' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                    <div className={`w-6 h-6 rounded border flex items-center justify-center ${formData.need_food_water ? 'bg-orange-500 border-orange-500' : 'border-gray-400'}`}>
+                      {formData.need_food_water && <span className="text-white text-sm">✓</span>}
+                    </div>
+                    <input type="checkbox" className="hidden" checked={formData.need_food_water} onChange={e => setFormData({ ...formData, need_food_water: e.target.checked })} />
+                    <span className="font-bold text-slate-800 flex items-center gap-2 leading-none"><Utensils size={20} /> {t.catFood}</span>
+                  </label>
+
+                  <label className={`flex items-center gap-4 p-4 rounded-xl border transition cursor-pointer select-none active:scale-[0.98] ${formData.need_medical ? 'bg-red-50 border-red-400 ring-1 ring-red-400' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                    <div className={`w-6 h-6 rounded border flex items-center justify-center ${formData.need_medical ? 'bg-red-600 border-red-600' : 'border-gray-400'}`}>
+                      {formData.need_medical && <span className="text-white text-sm">✓</span>}
+                    </div>
+                    <input type="checkbox" className="hidden" checked={formData.need_medical} onChange={e => setFormData({ ...formData, need_medical: e.target.checked })} />
+                    <span className="font-bold text-slate-800 flex items-center gap-2 leading-none"><Stethoscope size={20} /> {t.catMedical}</span>
+                  </label>
+                </div>
+
+                {/* --- PEOPLE COUNT --- */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.peopleCount}</label>
+                  <div className="flex items-center gap-4">
+                    <button type="button" onClick={() => setFormData({ ...formData, people_count: Math.max(1, formData.people_count - 1) })} className="w-14 h-14 rounded-xl bg-gray-100 font-bold text-2xl text-gray-600 active:bg-gray-200 transition">-</button>
+                    <input type="number" min="1" className="w-full p-4 text-center border border-gray-300 rounded-xl shadow-sm font-bold text-xl" value={formData.people_count} onChange={e => setFormData({ ...formData, people_count: parseInt(e.target.value) || 1 })} />
+                    <button type="button" onClick={() => setFormData({ ...formData, people_count: formData.people_count + 1 })} className="w-14 h-14 rounded-xl bg-gray-100 font-bold text-2xl text-gray-600 active:bg-gray-200 transition">+</button>
                   </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.name}</label><input required type="text" maxLength={50} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                  <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.phone}</label><input required type="tel" maxLength={10} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none" value={formData.contact_number} onChange={e => setFormData({ ...formData, contact_number: e.target.value })} /></div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.district}</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:border-blue-500 outline-none h-[50px]"
-                      value={formData.district} onChange={e => setFormData({ ...formData, district: e.target.value })}>
-                      {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.town}</label>
-                    <input maxLength={50} required type="text" className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 outline-none h-[50px]"
-                      value={formData.town} onChange={e => setFormData({ ...formData, town: e.target.value })} />
-                  </div>
+                  <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.district}</label><select className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm h-[50px]" value={formData.district} onChange={e => setFormData({ ...formData, district: e.target.value })}>{DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}</select></div>
+                  <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.town}</label><input maxLength={50} required type="text" className="w-full p-3 border border-gray-300 rounded-lg shadow-sm h-[50px]" value={formData.town} onChange={e => setFormData({ ...formData, town: e.target.value })} /></div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.needs}</label>
-                  <textarea maxLength={270} required rows="3" placeholder={t.needsPlaceholder} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 ring-blue-100 outline-none transition text-lg"
-                    value={formData.needs} onChange={e => setFormData({ ...formData, needs: e.target.value })}></textarea>
-                </div>
-
-                {/* <div className="md:hidden text-sm text-center text-blue-700 bg-blue-50 p-3 rounded-lg border border-blue-100 font-medium">
-                  ⬇️ {t.locDesc}
-                </div> */}
+                <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t.needs}</label><textarea maxLength={270} required rows="3" placeholder={t.needsPlaceholder} className="w-full p-3 border border-gray-300 rounded-lg shadow-sm text-lg" value={formData.needs} onChange={e => setFormData({ ...formData, needs: e.target.value })}></textarea></div>
               </form>
             </div>
             <div className="p-4 border-t bg-white flex gap-3 sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
@@ -605,8 +619,9 @@ function App() {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   )
 }
 export default App
